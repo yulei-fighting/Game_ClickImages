@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<style>
+    #cont{
+        margin: auto;
+        margin-top: 20px;
+        width: 400px;
+        height: 400px;
+        border: 1px solid gray;
+        overflow: hidden;
+    }
+
+    #main{
+        width: 400px;
+        height: 400px;
+        position: relative;
+        top: -100px;
+    }
+
+    .row{
+        height: 100px;
+    }
+
+    .row div{
+        width: 100px;
+        height: 100px;
+        /* border: 1px solid #f5f5f5; */
+        float: left;
+    }
+
+    .c2{
+        background: url(img/c2-s.png) no-repeat center center;
+    }
+    .c3{
+        background: url(img/c3-s.png) no-repeat center center;
+    }
+    .c4{
+        background: url(img/c4-s.png) no-repeat center center;
+    }
+
+    .black{
+        /* background: red; */
+        background: url(img/c5-s.png) no-repeat center center;
+    }
+
+    .div{
+        margin-top: 20px;
+        text-align:center;
+    }
+</style>
+<body>
+    <div class="div">得分：<input type="text" value="0" id="score" disabled size="5" style="text-align:center;background: red;"></div>
+    <div class="div" style="margin-top:5px;">
+        <input type="button" value="开始" id="start">
+        <input type="button" value="停止" id="stop"> 
+    </div>
+
+    <div id="cont">
+        <div id="main"></div>
+    </div>
+</body>
+<script>
+
+    function ClickImages(){
+        //获取元素对象
+        this.main = document.getElementById('main');
+        this.clock; //定时器
+        this.over = false;
+        this.speed = 1;
+
+        //创建div的工厂，根据传入不同的条件返回不一样的div
+        this.cdiv = function(classNames){
+            var div = document.createElement('div');
+            if(classNames){
+                div.className = classNames;
+            }
+            return div;
+        }
+
+        //创建一行div
+        this.crow = function(){
+            var row_div = this.cdiv('row');
+            //生成随机数
+            var k = Math.floor(Math.random()*4);
+            //利用随机数做判断生成黑块
+            for(var i=0;i<4;i++)
+            {
+                if(i==k){
+                    if(k==0){
+                        row_div.appendChild(this.cdiv('c2'));
+                    }else if(k==1){
+                        row_div.appendChild(this.cdiv('c3'));
+                    }else if(k==2){
+                        row_div.appendChild(this.cdiv('c4'));
+                    }else{
+                        row_div.appendChild(this.cdiv('black'));
+                    }
+                }else{
+                    row_div.appendChild(this.cdiv());
+                }
+            }
+            return row_div;
+        }
+
+        //游戏初始化
+        this.init = function(){
+            //默认生成四行
+            for(var i=0;i<4;i++)
+            {
+                this.main.appendChild(this.crow());
+            }
+            //设置定时器
+            this.clock = setInterval('start.move()',10);
+            //绑定点击事件
+            this.clicks();
+        }
+
+        //事件绑定方式
+        this.clicks = function(){
+            //在事件处理程序中，我们需要本对象，所以用that代替this
+            var that = this;
+            this.main.onclick = function(ev){
+                //事件委托获取事件触发的节点
+                var point = ev.target;
+                //游戏结束，不可点击
+                if(that.over == true){
+                    alert('Come on! The game is over!');
+                }else if(point.className=='black'||point.className=='c2'||point.className=='c3'||point.className=='c4'){
+                    //加分
+                    var score = document.getElementById('score');
+                    var sc = parseInt(score.value);
+                    score.value = ++sc;
+                    if(sc % 10 == 0){
+                        that.speed +=0.5;
+                    }
+                    point.className = '';
+                    point.parentNode.pass = true;
+                }else{
+                    that.stop();
+                    that.over = true;
+                    alert('GAME OVER!');
+                }
+            }
+        }
+
+        //游戏停止
+        this.stop = function(){
+            clearInterval(start.clock);
+        }
+
+        //动起来
+        this.move = function(){
+            var topInt = parseInt(getComputedStyle(this.main)['top']);
+            //如果top等于0，创建一行，放到main的最前面
+            if(topInt > 0){
+                this.main.insertBefore(this.crow(),this.main.firstChild);
+                this.main.style.top = '-100px';
+                if(this.main.lastChild.pass == undefined){
+                    this.stop();
+                    this.over = true;
+                    alert('GAME OVER!');
+                }else{
+                    if(this.main.children.length>5){
+                        this.main.removeChild(this.main.lastChild);
+                    }
+                }
+            }else{
+                // console.log(this.speed);
+                this.main.style.top = topInt + this.speed + 'px';
+            }
+        }
+    }
+
+    var start = new ClickImages();
+
+    document.getElementById('stop').onclick = function(){
+        clearInterval(start.clock);
+    }
+
+    document.getElementById('start').onclick = function(){
+        start.init();
+    }
+</script>
+</html>
